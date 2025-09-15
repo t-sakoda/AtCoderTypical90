@@ -9,7 +9,7 @@ export function Main(input: string[]) {
 
   // 二分探索で最大の最小値を求める
   let ok = 0;
-  let ng = L + 1
+  let ng = L + 1;
 
   const check = (x: number): boolean => {
     // 最小値がx以上になるようにK個の切れ目を選べるか
