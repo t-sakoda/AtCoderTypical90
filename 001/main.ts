@@ -1,44 +1,51 @@
 
 export function Main(input: string[]) {
   // N: 切れ目の数, L: ようかんの長さ
-  const [N, L] = input[0].split(" ").map(Number);
+  const [N, L] = input[0].trim().split(/\s/).map(Number);
   // K: 選択する切れ目の数
-  const K = Number(input[1]);
-  // A: 切れ目の位置
-  const A = input[2].split(" ").map(Number);
+  const K = Number(input[1].trim());
+  // A: 切れ目の位置（昇順）
+  const A = input[2].trim().split(/\s/).map(Number);
 
-  let score = 0;
+  // 二分探索で最大の最小値を求める
+  let ok = 0;
+  let ng = L + 1
 
-  // 切る位置の組み合わせを生成
-  const combination: number[] = [];
-  const backtrack = (currentIndex: number, depth: number, lastCandidate: number) => {
-    if (depth === K) {
-      const leftLength = combination[combination.length - 1] - (combination[combination.length - 2] || 0);
-      const rightLength = L - combination[combination.length - 1];
-      const candidate = Math.min(lastCandidate, leftLength, rightLength);
-      score = Math.max(score, candidate);
-      return;
+  const check = (x: number): boolean => {
+    // 最小値がx以上になるようにK個の切れ目を選べるか
+    let count = 0; // 選んだ切れ目の数
+    let last = 0; // 最後に選んだ切れ目の位置
+    for (let i = 0; i < N; i++) {
+      if (A[i] - last >= x) {
+        // x以上長く切れたら、その切れ目を選ぶ
+        count++;
+        last = A[i];
+      }
+      if (count === K) {
+        // K個の切れ目を選んだら終了
+        break;
+      }
     }
-    for (let i = currentIndex; i < N; i++) {
-      const diff = A[i] - (combination[combination.length - 1] || 0);
-      // scoreより小さくなったら終了
-      if (diff <= score) continue;
-      const candidate = Math.min(lastCandidate, diff);
-      combination.push(A[i]);
-      backtrack(i + 1, depth + 1, candidate);
-      combination.pop();
-    }
-  };
-  backtrack(0, 0, L);
+    // K個の切れ目を選ぶことができて、かつ、最後のようかんの端までx以上長く切れていれば成功
+    return count == K && L - last >= x;
+  }
 
-  return `${score}`;
+  while (ng - ok > 1) {
+    const mid = Math.floor((ok + ng) / 2);
+    if (check(mid)) {
+      ok = mid;
+    } else {
+      ng = mid;
+    }
+  }
+  return ok.toString();
 }
 
 //*この行以降は提出するときに有効にする。
 /*
 const readInput = async (): Promise<string[]> => {
   const input = await Deno.readTextFile("/dev/stdin");
-  return input.split("\n")
+  return input.trim().split("\n");
 };
 const input = await readInput();
 console.log(Main(input));
